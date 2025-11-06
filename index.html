@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Exam Countdown</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body>
   <div class="wrap">
     <header>
-      <h1>CSCI 272 - Mid Term</h1>
+      <h1>Exam Title</h1>
       <div class="subtitle">Stay focused. Manage your time wisely.</div>
     </header>
 
     <main class="timer" role="timer" aria-live="polite">
+      <!-- Default time set to 60 minutes -->
       <div id="clock" class="clock">60:00</div>
       <div class="controls-row">
         <button id="startPauseBtn" class="btn primary">Start Exam</button>
@@ -22,18 +25,21 @@
       </div>
     </main>
 
+    <!-- Notes -->
     <section class="notes" aria-labelledby="rules-title">
-      <h2 id="rules-title">Exam Rules</h2>
+      <h2 id="rules-title">Exam Rules & Restrictions</h2>
       <button class="edit-rules-btn" onclick="openSettingsModal()">✎</button>
+      <!-- Default Rules -->
       <ul class="rules">
-        <li><strong>No devices allowed.</strong></li>
-        <li><strong>Screens must be turned off.</strong></li>
-        <li><strong>No books or notes on the table.</strong></li>
+        <li><strong>Rule/Restriction 1</strong></li>
+        <li><strong>Rule/Restriction 2</strong></li>
+        <li><strong>Rule/Restriction 3</strong></li>
       </ul>
     </section>
 
     <footer>
-      <div class="pill">Copyright © <span id="currentYear"></span> <a href="https://avijitroy.com" target="_blank">Avijit Roy</a></div>
+      <div class="pill">Copyright © <span id="currentYear"></span> <a href="https://avijitroy.com"
+          target="_blank">Avijit Roy</a></div>
     </footer>
   </div>
 
@@ -46,7 +52,7 @@
         <input type="text" id="examDuration" placeholder="e.g., 30 or 30:00 or 0:30" pattern="^[0-9]+(?::[0-5][0-9])?$">
       </div>
       <div class="form-group">
-        <label for="examRules">Exam Rules (one per line)</label>
+        <label for="examRules">Exam Rules/Restrictions (one per line)</label>
         <textarea id="examRules"></textarea>
       </div>
       <div class="modal-actions">
@@ -58,4 +64,5 @@
 
   <script src="js/script.js"></script>
 </body>
+
 </html>
