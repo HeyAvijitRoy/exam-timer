@@ -23,6 +23,8 @@ const settingsModal = document.getElementById('settingsModal');
 // Utility Functions
 const pad = (n) => n.toString().padStart(2, '0');
 
+// Persistence Functions 
+// Save to localStorage
 function saveToLocalStorage() {
   const examData = {
     title: examTitle.textContent,
@@ -32,7 +34,7 @@ function saveToLocalStorage() {
   };
   localStorage.setItem('examData', JSON.stringify(examData));
 }
-
+// Load saved data from localStorage
 function loadFromLocalStorage() {
   try {
     const examData = JSON.parse(localStorage.getItem('examData'));
@@ -55,6 +57,7 @@ function initializeTimer() {
   render(remainingSeconds);
 }
 
+// Render the clock display
 function render(seconds) {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
@@ -75,10 +78,11 @@ function render(seconds) {
     }
     clockEl.classList.add('warn');
   }
-
+  // Update document title
   document.title = `${pad(m)}:${pad(s)} — Exam Countdown`;
 }
 
+// Start the countdown interval
 function startInterval() {
   if (timerId) return;
   timerId = setInterval(() => {
@@ -105,6 +109,8 @@ function startInterval() {
   }, 1000);
 }
 
+// Control Functions
+// Start the timer
 function start() {
   hasStarted = true;
   isPaused = false;
@@ -112,14 +118,14 @@ function start() {
   startPauseBtn.classList.remove('primary');
   startInterval();
 }
-
+// Pause or resume the timer
 function pauseResume() {
   if (!hasStarted) return;
   isPaused = !isPaused;
   startPauseBtn.textContent = isPaused ? 'Resume' : 'Pause';
   if (!timerId) startInterval();
 }
-
+// Reset the timer
 function reset() {
   remainingSeconds = totalSecondsInitial;  // Reset to configured duration instead of 0
   isPaused = true;
@@ -130,6 +136,7 @@ function reset() {
 }
 
 // Audio Functions
+// Simple beep sound to warn the user
 function beep(freq = 880, durationSec = 0.2) {
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) return;
@@ -205,7 +212,7 @@ function openSettingsModal() {
   const modal = document.getElementById('settingsModal');
   const durationInput = document.getElementById('examDuration');
   const rulesInput = document.getElementById('examRules');
-  
+  // Pre-fill current settings
   durationInput.value = EXAM_DURATION_MIN;
   rulesInput.value = Array.from(rulesList.children)
     .map(li => li.textContent)
@@ -214,11 +221,13 @@ function openSettingsModal() {
   modal.classList.add('active');
 }
 
+// Close settings modal
 function closeSettingsModal() {
   const modal = document.getElementById('settingsModal');
   modal.classList.remove('active');
 }
 
+// Parse duration input (e.g., "30", "30:00", "0:30")
 function parseDurationInput(input) {
   // Remove any whitespace and ensure the input is trimmed
   input = input.trim();
@@ -237,6 +246,7 @@ function parseDurationInput(input) {
   }
 }
 
+// Save settings from modal
 function saveSettings() {
   const durationInput = document.getElementById('examDuration');
   const rulesInput = document.getElementById('examRules');
@@ -247,6 +257,7 @@ function saveSettings() {
     return;
   }
   
+  // Update configuration
   EXAM_DURATION_MIN = duration;
   const rules = rulesInput.value
     .split('\n')
@@ -265,6 +276,7 @@ startPauseBtn.addEventListener('click', () => {
   if (!hasStarted) start(); else pauseResume();
 });
 
+// Reset button
 resetBtn.addEventListener('click', reset);
 fsBtn.addEventListener('click', toggleFullscreen);
 clockEl.addEventListener('dblclick', openSettingsModal);
