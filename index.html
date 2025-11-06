@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Exam Countdown</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>CSCI 272 - Mid Term</h1>
+      <div class="subtitle">Stay focused. Manage your time wisely.</div>
+    </header>
+
+    <main class="timer" role="timer" aria-live="polite">
+      <div id="clock" class="clock">60:00</div>
+      <div class="controls-row">
+        <button id="startPauseBtn" class="btn primary">Start Exam</button>
+        <button id="resetBtn" class="btn">Reset</button>
+        <button id="fsBtn" class="btn">Fullscreen</button>
+      </div>
+    </main>
+
+    <section class="notes" aria-labelledby="rules-title">
+      <h2 id="rules-title">Exam Rules</h2>
+      <button class="edit-rules-btn" onclick="openSettingsModal()">✎</button>
+      <ul class="rules">
+        <li><strong>No devices allowed.</strong></li>
+        <li><strong>Screens must be turned off.</strong></li>
+        <li><strong>No books or notes on the table.</strong></li>
+      </ul>
+    </section>
+
+    <footer>
+      <div class="pill">Copyright © <span id="currentYear"></span> <a href="https://avijitroy.com" target="_blank">Avijit Roy</a></div>
+    </footer>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <h2>Exam Settings</h2>
+      <div class="form-group">
+        <label for="examDuration">Duration (minutes or minutes:seconds)</label>
+        <input type="text" id="examDuration" placeholder="e.g., 30 or 30:00 or 0:30" pattern="^[0-9]+(?::[0-5][0-9])?$">
+      </div>
+      <div class="form-group">
+        <label for="examRules">Exam Rules (one per line)</label>
+        <textarea id="examRules"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeSettingsModal()">Cancel</button>
+        <button class="btn primary" onclick="saveSettings()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
