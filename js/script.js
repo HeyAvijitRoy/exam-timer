@@ -1,14 +1,19 @@
-// Configuration
-let EXAM_DURATION_MIN = 60;  // default duration if not set
-const WARN_MIN = 15;         // orange at <= 10 minutes
-const DANGER_MIN = 5;        // red & pulse at <= 5 minutes
+/** --------------------------
+ *      CONFIGURATION
+ * --------------------------- */
+let EXAM_DURATION_MIN = 60;  // Default duration in minutes. Can be changed in settings.
+const WARN_MIN = 15;         // Time in minutes to show the 'warning' state (e.g., orange color).
+const DANGER_MIN = 5;        // Time in minutes to show the 'danger' state (e.g., red color and pulse).
 
-// State
-let totalSecondsInitial;
-let remainingSeconds;
-let timerId = null;
-let isPaused = true;     // start paused
-let hasStarted = false;  // not started until Start pressed
+/** --------------------------
+ *      STATE MANAGEMENT
+ * --------------------------- */
+let totalSecondsInitial; // The initial total seconds of the timer, set from EXAM_DURATION_MIN.
+let remainingSeconds;    // The countdown value, in seconds.
+let elapsedSeconds = 0;  // The count-up value, in seconds.
+let timerId = null;      // Holds the reference to the setInterval timer.
+let isPaused = true;     // Timer starts in a paused state.
+let hasStarted = false;  // Tracks if the 'Start' button has been pressed at least once.
 
 // DOM Elements
 const clockEl = document.getElementById('clock');
@@ -18,13 +23,21 @@ const fsBtn = document.getElementById('fsBtn');
 const examTitle = document.querySelector('header h1');
 const subtitle = document.querySelector('header .subtitle');
 const rulesList = document.querySelector('.rules');
+const currentDateEl = document.getElementById('currentDate');
+const currentTimeEl = document.getElementById('currentTime');
+const elapsedTimeEl = document.getElementById('elapsedTime');
 const settingsModal = document.getElementById('settingsModal');
 
-// Utility Functions
+/** --------------------------
+ *      UTILITY FUNCTIONS
+ * --------------------------- */
+// Pads a number with a leading zero if it's less than 10.
 const pad = (n) => n.toString().padStart(2, '0');
 
-// Persistence Functions 
-// Save to localStorage
+/** --------------------------
+ *    PERSISTENCE FUNCTIONS
+ * --------------------------- */
+// Saves the current exam title, subtitle, duration, and rules to localStorage.
 function saveToLocalStorage() {
   const examData = {
     title: examTitle.textContent,
@@ -34,7 +47,7 @@ function saveToLocalStorage() {
   };
   localStorage.setItem('examData', JSON.stringify(examData));
 }
-// Load saved data from localStorage
+// Loads and applies saved data from localStorage on page load.
 function loadFromLocalStorage() {
   try {
     const examData = JSON.parse(localStorage.getItem('examData'));
@@ -45,27 +58,36 @@ function loadFromLocalStorage() {
       rulesList.innerHTML = examData.rules.map(rule => `<li>${rule}</li>`).join('');
       initializeTimer();
     }
-  } catch (error) {
+  } catch (error) { // Catches potential JSON parsing errors.
     console.error('Error loading saved data:', error);
   }
 }
 
-// Timer Functions
+/** --------------------------
+ *      TIMER CORE FUNCTIONS
+ * --------------------------- */
+// Sets or resets the timer's initial state based on the configured duration.
 function initializeTimer() {
   totalSecondsInitial = EXAM_DURATION_MIN * 60;
   remainingSeconds = totalSecondsInitial;
+  elapsedSeconds = 0;
   render(remainingSeconds);
 }
 
-// Render the clock display
+// Updates the UI with the current time, elapsed time, and visual states.
 function render(seconds) {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   clockEl.textContent = `${pad(m)}:${pad(s)}`;
 
+  // Update elapsed time display
+  const elapsedM = Math.floor(elapsedSeconds / 60);
+  const elapsedS = elapsedSeconds % 60;
+  elapsedTimeEl.textContent = `Elapsed: ${pad(elapsedM)}:${pad(elapsedS)}`;
+
   clockEl.classList.remove('warn', 'danger', 'pulse');
   
-  // Warning sounds and visual indicators
+  // Apply visual styles and play sounds based on remaining time.
   if (seconds <= DANGER_MIN * 60) {
     if (seconds === DANGER_MIN * 60) { // Exactly at danger threshold
       beep(440, 0.3); // Lower pitched warning
@@ -78,11 +100,11 @@ function render(seconds) {
     }
     clockEl.classList.add('warn');
   }
-  // Update document title
+  // Update the browser tab title with the current time.
   document.title = `${pad(m)}:${pad(s)} — Exam Countdown`;
 }
 
-// Start the countdown interval
+// Manages the main 1-second interval for the timer.
 function startInterval() {
   if (timerId) return;
   timerId = setInterval(() => {
@@ -105,12 +127,15 @@ function startInterval() {
       return;
     }
     remainingSeconds -= 1;
+    elapsedSeconds += 1;
     render(remainingSeconds);
   }, 1000);
 }
 
-// Control Functions
-// Start the timer
+/** --------------------------
+ *      CONTROL FUNCTIONS
+ * --------------------------- */
+// Handles the initial start of the timer.
 function start() {
   hasStarted = true;
   isPaused = false;
@@ -118,45 +143,78 @@ function start() {
   startPauseBtn.classList.remove('primary');
   startInterval();
 }
-// Pause or resume the timer
+// Toggles the paused state of the timer.
 function pauseResume() {
   if (!hasStarted) return;
   isPaused = !isPaused;
   startPauseBtn.textContent = isPaused ? 'Resume' : 'Pause';
   if (!timerId) startInterval();
 }
-// Reset the timer
+// Resets the timer to its initial state.
 function reset() {
+  if (timerId) {
+    clearInterval(timerId);
+    timerId = null;
+  }
   remainingSeconds = totalSecondsInitial;  // Reset to configured duration instead of 0
+  elapsedSeconds = 0;
   isPaused = true;
   hasStarted = false;
   render(remainingSeconds);
+  elapsedTimeEl.textContent = 'Elapsed: 00:00';
   startPauseBtn.textContent = 'Start Exam';
   startPauseBtn.classList.add('primary');
 }
 
-// Audio Functions
-// Simple beep sound to warn the user
+/** --------------------------
+ *    DATE & TIME DISPLAY
+ * --------------------------- */
+// Updates the current date and time display elements.
+function updateCurrentDateTime() {
+  const now = new Date();
+  // Format date as "Month Day, Year" e.g., "November 6, 2025"
+  currentDateEl.textContent = now.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+  });
+  // Format time as "hh:mm:ss"
+  currentTimeEl.textContent = now.toLocaleTimeString('en-US', { hour12: true });
+}
+
+/** --------------------------
+ *      AUDIO FEEDBACK
+ * --------------------------- */
+// Generates a beep sound using the Web Audio API for alerts.
 function beep(freq = 880, durationSec = 0.2) {
+  // Check for browser compatibility.
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) return;
+
+  // Create an AudioContext, Oscillator, and Gain node.
   const ac = new AC();
-  const o = ac.createOscillator();
-  const g = ac.createGain();
-  o.type = 'sine';
-  o.frequency.value = freq;
-  o.connect(g); g.connect(ac.destination);
+  const o = ac.createOscillator(); // Creates a sound wave.
+  const g = ac.createGain();       // Controls the volume.
+
+  o.type = 'sine';            // Type of sound wave.
+  o.frequency.value = freq;   // Frequency of the wave (pitch).
+  o.connect(g);               // Connect oscillator to gain node.
+  g.connect(ac.destination);  // Connect gain node to output (speakers).
+
+  // Ramp up the volume to avoid a "click" sound.
   g.gain.setValueAtTime(0.0001, ac.currentTime);
   g.gain.exponentialRampToValueAtTime(0.15, ac.currentTime + 0.01);
   o.start();
+
+  // Schedule the sound to stop after the specified duration.
   setTimeout(() => {
     g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + 0.01);
     o.stop(ac.currentTime + 0.04);
-    ac.close();
+    ac.close(); // Clean up the AudioContext.
   }, durationSec * 1000);
 }
 
-// Fullscreen Functions
+// Toggles fullscreen mode for the browser window.
 async function toggleFullscreen() {
   if (!document.fullscreenElement) {
     try { await document.documentElement.requestFullscreen(); } catch {}
@@ -165,7 +223,10 @@ async function toggleFullscreen() {
   }
 }
 
-// Editable Elements Functions
+/** --------------------------
+ *    INLINE EDITING FUNCTIONS
+ * --------------------------- */
+// Allows an element's text to be edited inline by replacing it with an input field.
 function makeEditable(element) {
   element.addEventListener('dblclick', () => {
     const currentText = element.textContent;
@@ -184,6 +245,7 @@ function makeEditable(element) {
     element.appendChild(input);
     input.focus();
 
+    // Saves the new text or reverts to the old text if the input is empty.
     function save() {
       const newText = input.value.trim();
       if (newText) {
@@ -194,6 +256,7 @@ function makeEditable(element) {
       }
     }
 
+    // Save on blur (losing focus) or when Enter is pressed.
     input.addEventListener('blur', save);
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
@@ -207,7 +270,10 @@ function makeEditable(element) {
   });
 }
 
-// Settings Modal Functions
+/** --------------------------
+ *    SETTINGS MODAL FUNCTIONS
+ * --------------------------- */
+// Opens the settings modal and pre-fills it with current values.
 function openSettingsModal() {
   const modal = document.getElementById('settingsModal');
   const durationInput = document.getElementById('examDuration');
@@ -221,13 +287,13 @@ function openSettingsModal() {
   modal.classList.add('active');
 }
 
-// Close settings modal
+// Closes the settings modal.
 function closeSettingsModal() {
   const modal = document.getElementById('settingsModal');
   modal.classList.remove('active');
 }
 
-// Parse duration input (e.g., "30", "30:00", "0:30")
+// Parses a string like "30" or "1:30" into a total number of minutes.
 function parseDurationInput(input) {
   // Remove any whitespace and ensure the input is trimmed
   input = input.trim();
@@ -246,7 +312,7 @@ function parseDurationInput(input) {
   }
 }
 
-// Save settings from modal
+// Validates and saves the new settings from the modal.
 function saveSettings() {
   const durationInput = document.getElementById('examDuration');
   const rulesInput = document.getElementById('examRules');
@@ -257,7 +323,7 @@ function saveSettings() {
     return;
   }
   
-  // Update configuration
+  // Update configuration, state, and UI.
   EXAM_DURATION_MIN = duration;
   const rules = rulesInput.value
     .split('\n')
@@ -271,7 +337,9 @@ function saveSettings() {
   closeSettingsModal();
 }
 
-// Event Listeners
+/** --------------------------
+ *      EVENT LISTENERS
+ * --------------------------- */
 startPauseBtn.addEventListener('click', () => {
   if (!hasStarted) start(); else pauseResume();
 });
@@ -285,11 +353,18 @@ clockEl.addEventListener('dblclick', openSettingsModal);
 makeEditable(examTitle);
 makeEditable(subtitle);
 
-// Initialize
+/** --------------------------
+ *      INITIALIZATION
+ * --------------------------- */
+// Runs when the page content is fully loaded.
 document.addEventListener('DOMContentLoaded', () => {
   loadFromLocalStorage();
   initializeTimer();
   
+  // Initialize and update current date/time every second
+  updateCurrentDateTime();
+  setInterval(updateCurrentDateTime, 1000);
+
   // Set current year in footer
   document.getElementById('currentYear').textContent = new Date().getFullYear();
 });

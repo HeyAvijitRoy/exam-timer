@@ -16,8 +16,15 @@
     </header>
 
     <main class="timer" role="timer" aria-live="polite">
+      <div class="current-datetime">
+        <div id="currentDate"></div>
+        <div id="currentTime"></div>
+      </div>
+
       <!-- Default time set to 60 minutes -->
       <div id="clock" class="clock">60:00</div>
+      <div id="elapsedTime" class="elapsed-time">Elapsed: 00:00</div>
+
       <div class="controls-row">
         <button id="startPauseBtn" class="btn primary">Start Exam</button>
         <button id="resetBtn" class="btn">Reset</button>
