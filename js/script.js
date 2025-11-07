@@ -27,6 +27,7 @@ const currentDateEl = document.getElementById('currentDate');
 const currentTimeEl = document.getElementById('currentTime');
 const elapsedTimeEl = document.getElementById('elapsedTime');
 const settingsModal = document.getElementById('settingsModal');
+const progressBar = document.getElementById('progressBar');
 
 /** --------------------------
  *      UTILITY FUNCTIONS
@@ -80,13 +81,19 @@ function render(seconds) {
   const s = seconds % 60;
   clockEl.textContent = `${pad(m)}:${pad(s)}`;
 
+  // Update linear progress bar
+  const percentage = (seconds / totalSecondsInitial) * 100;
+  progressBar.style.width = `${percentage}%`;
+
   // Update elapsed time display
   const elapsedM = Math.floor(elapsedSeconds / 60);
   const elapsedS = elapsedSeconds % 60;
   elapsedTimeEl.textContent = `Elapsed: ${pad(elapsedM)}:${pad(elapsedS)}`;
 
   clockEl.classList.remove('warn', 'danger', 'pulse');
-  
+  // Reset progress bar color
+  progressBar.style.backgroundColor = 'var(--accent)';
+
   // Apply visual styles and play sounds based on remaining time.
   if (seconds <= DANGER_MIN * 60) {
     if (seconds === DANGER_MIN * 60) { // Exactly at danger threshold
@@ -94,14 +101,16 @@ function render(seconds) {
       setTimeout(() => beep(440, 0.3), 500);
     }
     clockEl.classList.add('danger', 'pulse');
+    progressBar.style.backgroundColor = 'var(--danger)';
   } else if (seconds <= WARN_MIN * 60) {
     if (seconds === WARN_MIN * 60) { // Exactly at warning threshold
       beep(880, 0.2); // Higher pitched warning
     }
     clockEl.classList.add('warn');
+    progressBar.style.backgroundColor = 'var(--warn)';
   }
   // Update the browser tab title with the current time.
-  document.title = `${pad(m)}:${pad(s)} — Exam Countdown`;
+  document.title = `${pad(m)}:${pad(s)} — Exam Countdown Timer`;
 }
 
 // Manages the main 1-second interval for the timer.
@@ -227,46 +236,67 @@ async function toggleFullscreen() {
  *    INLINE EDITING FUNCTIONS
  * --------------------------- */
 // Allows an element's text to be edited inline by replacing it with an input field.
-function makeEditable(element) {
+function makeEditable(element, isMultiLine = false) {
   element.addEventListener('dblclick', () => {
-    const currentText = element.textContent;
-    const input = document.createElement('input');
-    input.value = currentText;
-    input.style.width = '100%';
-    input.style.fontSize = window.getComputedStyle(element).fontSize;
-    input.style.fontFamily = window.getComputedStyle(element).fontFamily;
-    input.style.background = 'rgba(255,255,255,0.1)';
-    input.style.border = '1px solid rgba(255,255,255,0.2)';
-    input.style.color = 'inherit';
-    input.style.padding = '4px 8px';
-    input.style.borderRadius = '4px';
+    // If the target is the rules list, use a textarea for multi-line editing.
+    if (isMultiLine && element.classList.contains('rules')) {
+      const currentRules = Array.from(element.children).map(li => li.innerHTML).join('\n');
+      const textarea = document.createElement('textarea');
+      textarea.value = currentRules;
+      textarea.style.width = '100%';
+      textarea.style.height = `${element.offsetHeight}px`; // Match height
+      textarea.style.fontSize = 'clamp(1rem, 1.2vw + 0.5rem, 1.2rem)';
+      textarea.style.fontFamily = 'inherit';
+      textarea.style.background = 'rgba(255,255,255,0.1)';
+      textarea.style.border = '1px solid var(--accent)';
+      textarea.style.color = 'inherit';
+      textarea.style.padding = '8px';
+      textarea.style.borderRadius = '8px';
+      textarea.style.resize = 'none';
 
-    element.textContent = '';
-    element.appendChild(input);
-    input.focus();
+      element.style.display = 'none'; // Hide the original list
+      element.parentNode.insertBefore(textarea, element.nextSibling);
+      textarea.focus();
 
-    // Saves the new text or reverts to the old text if the input is empty.
-    function save() {
-      const newText = input.value.trim();
-      if (newText) {
-        element.textContent = newText;
+      const saveRules = () => {
+        const newRules = textarea.value.split('\n').filter(rule => rule.trim()).map(rule => `<li>${rule.trim()}</li>`).join('');
+        element.innerHTML = newRules;
+        element.style.display = 'grid';
+        textarea.remove();
         saveToLocalStorage();
-      } else {
-        element.textContent = currentText;
-      }
-    }
+      };
 
-    // Save on blur (losing focus) or when Enter is pressed.
-    input.addEventListener('blur', save);
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        save();
-      }
-      if (e.key === 'Escape') {
-        element.textContent = currentText;
-      }
-    });
+      textarea.addEventListener('blur', saveRules);
+      textarea.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); textarea.blur(); } });
+
+    } else { // Original logic for single-line inputs (title, subtitle)
+      const currentText = element.textContent;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = currentText;
+      input.style.width = '100%';
+      input.style.fontSize = window.getComputedStyle(element).fontSize;
+      input.style.fontFamily = 'inherit';
+      input.style.background = 'rgba(255,255,255,0.1)';
+      input.style.border = '1px solid var(--accent)';
+      input.style.color = 'inherit';
+      input.style.padding = '4px 8px';
+      input.style.borderRadius = '4px';
+
+      element.style.display = 'none';
+      element.parentNode.insertBefore(input, element);
+      input.focus();
+
+      const save = () => {
+        element.textContent = input.value.trim() || currentText;
+        element.style.display = '';
+        input.remove();
+        saveToLocalStorage();
+      };
+
+      input.addEventListener('blur', save);
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); save(); } });
+    }
   });
 }
 
@@ -352,6 +382,7 @@ clockEl.addEventListener('dblclick', openSettingsModal);
 // Make elements editable
 makeEditable(examTitle);
 makeEditable(subtitle);
+makeEditable(rulesList, true);
 
 /** --------------------------
  *      INITIALIZATION
