@@ -1,33 +1,53 @@
+<!--
+  Exam Countdown Timer
+  A responsive, single-viewport timer application for exam management
+  Author: Avijit Roy
+  Website: https://avijitroy.com
+-->
 <!DOCTYPE html>
+<!-- Language attribute for accessibility and SEO -->
 <html lang="en">
 
 <head>
+  <!-- Character encoding and responsive viewport settings -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Exam Countdown Timer</title>
+  <!-- External stylesheet for maintainable CSS -->
   <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body>
+  <!-- Main wrapper - uses CSS Grid for viewport-locked layout -->
   <div class="wrap">
+    <!-- Page header with editable title -->
     <header>
       <h1>Exam Title</h1>
       <div class="subtitle">Stay focused. Manage your time wisely.</div>
     </header>
     
+    <!-- Main content area - contains timer and notes in a grid layout -->
     <div class="main-content">
+      <!-- Timer section with ARIA roles for accessibility 
+           aria-live="polite" ensures screen readers announce time updates -->
       <main class="timer" role="timer" aria-live="polite">
+        <!-- Current date/time display for reference -->
         <div class="current-datetime">
           <div id="currentDate"></div>
           <div id="currentTime"></div>
         </div>
   
+        <!-- Visual progress indicator -->
         <div class="progress-bar-container">
           <div id="progressBar" class="progress-bar"></div>
         </div>
+
+        <!-- Main countdown display - large, prominent timer -->
         <div id="clock" class="clock">60:00</div>
+        <!-- Elapsed time counter for progress tracking -->
         <div id="elapsedTime" class="elapsed-time">Elapsed: 00:00</div>
   
+        <!-- Control buttons for timer interaction -->
         <div class="controls-row">
           <button id="startPauseBtn" class="btn primary">Start Exam</button>
           <button id="resetBtn" class="btn">Reset</button>
@@ -35,10 +55,11 @@
         </div>
       </main>
   
-      <!-- Notes -->
+      <!-- Notes section with exam rules
+           aria-labelledby connects the section to its heading for accessibility -->
       <section class="notes" aria-labelledby="rules-title">
         <h2 id="rules-title">Exam Rules & Restrictions</h2>
-        <!-- Default Rules -->
+        <!-- Editable list of exam rules -->
         <ul class="rules">
           <li><strong>Rule/Restriction 1</strong></li>
           <li><strong>Rule/Restriction 2</strong></li>
@@ -47,25 +68,33 @@
       </section>
     </div>
     
-    <!-- Footer -->
+    <!-- Page footer with copyright information -->
     <footer>
       <div class="pill">Copyright © <span id="currentYear"></span> <a href="https://avijitroy.com"
           target="_blank">Avijit Roy</a></div>
     </footer>
   </div>
 
-  <!-- Settings Modal -->
+  <!-- Settings modal - hidden by default, shown when editing exam settings 
+       Uses semantic form elements and proper labeling for accessibility -->
   <div id="settingsModal" class="modal">
     <div class="modal-content">
       <h2>Exam Settings</h2>
+      <!-- Duration input with pattern validation -->
       <div class="form-group">
         <label for="examDuration">Duration (minutes or minutes:seconds)</label>
-        <input type="text" id="examDuration" placeholder="e.g., 30 or 30:00 or 0:30" pattern="^[0-9]+(?::[0-5][0-9])?$">
+        <input type="text" 
+               id="examDuration" 
+               placeholder="e.g., 30 or 30:00 or 0:30" 
+               pattern="^[0-9]+(?::[0-5][0-9])?$"
+               aria-describedby="durationFormat">
       </div>
+      <!-- Rules textarea for multiline input -->
       <div class="form-group">
         <label for="examRules">Exam Rules/Restrictions (one per line)</label>
         <textarea id="examRules"></textarea>
       </div>
+      <!-- Modal action buttons -->
       <div class="modal-actions">
         <button class="btn" onclick="closeSettingsModal()">Cancel</button>
         <button class="btn primary" onclick="saveSettings()">Save</button>
@@ -73,7 +102,7 @@
     </div>
   </div>
   
-  <!-- Scripts -->  
+  <!-- Main application JavaScript - loaded at end of body for performance -->
   <script src="js/script.js"></script>
 </body>
 

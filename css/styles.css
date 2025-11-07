@@ -1,12 +1,21 @@
+/* ==========================================================================
+   Exam Timer - A single-viewport timer app with notes
+   Written by HeyAvijitRoy
+   ========================================================================== */
+
+/* Global custom properties
+   ========================================================================== */
 :root {
-  --bg: #0b0f14;
-  --fg: #e8f0ff;
-  --muted: #9bb0c9;
-  --accent: #3aa0ff;
-  --warn: #ffb020;
-  --danger: #ff4d4f;
+  --bg: #0b0f14;      /* Dark background for better readability */
+  --fg: #e8f0ff;      /* Light text for contrast */
+  --muted: #9bb0c9;   /* Subdued text for secondary information */
+  --accent: #3aa0ff;  /* Primary accent for important elements */
+  --warn: #ffb020;    /* Warning state */
+  --danger: #ff4d4f;  /* Danger/alert state */
 }
 
+/* Base styles
+   ========================================================================== */
 * { box-sizing: border-box; }
 
 html, body {
@@ -17,17 +26,19 @@ html, body {
   font-family: system-ui, Segoe UI, Roboto, Inter, Helvetica, Arial, sans-serif;
 }
 
+/* Layout
+   ========================================================================== */
+/* Main container - uses CSS Grid for header, content, footer layout
+   Viewport-locked height prevents page scroll, internal elements scroll instead */
 .wrap {
-  /* force the app to fit the viewport exactly and prevent page-level scrolling */
   height: 100vh;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr auto; /* Header, flexible content, footer */
   gap: clamp(0.75rem, 2vh, 2rem);
   padding: 3vh 4vw;
-  overflow: hidden; /* prevent page scroll; let inner regions scroll if needed */
+  overflow: hidden; /* Prevents page-level scroll */
 }
 
-/* Header Styles */
 header h1 {
   margin: 0;
   font-size: clamp(1.6rem, 2.2vw + 1rem, 3rem);
@@ -53,35 +64,37 @@ header .subtitle:hover::after {
   opacity: 0.6;
 }
 
-/* Main Content Wrapper */
+/* Main content area - Timer and Notes layout
+   Uses CSS Grid for vertical layout while allowing notes to scroll */
 .main-content {
   display: grid;
-  gap: 1rem; /* reduced gap for tighter viewport fit */
-  min-height: 0; /* allow children to shrink inside the viewport */
+  gap: 1rem;
+  min-height: 0; /* Allows grid children to shrink */
   grid-template-rows: 1fr;
   align-items: stretch;
 }
 
-/* Timer Styles */
+/* Timer section - Centrally aligned with compact spacing */
 .timer {
   display: grid;
   place-items: center;
-  gap: 0.2rem;
-  min-height: 0; /* allow timer to shrink inside the grid */
+  gap: 0.2rem; /* Compact spacing between timer elements */
+  min-height: 0; /* Allows timer to shrink in grid */
 }
 
-/* ensure notes and timer can shrink; keep scrolling inside .notes only */
 .notes {
   min-height: 0;
 }
 
+/* Clock display - Large, prominent timer with responsive sizing
+   Uses tabular numbers for consistent width and smooth transitions */
 .clock {
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums; /* Ensures numbers don't shift width */
   font-weight: 800;
   line-height: 1;
   text-align: center;
   letter-spacing: 2px;
-  font-size: clamp(5rem, 25vw, 12rem);
+  font-size: clamp(5rem, 25vw, 12rem); /* Responsive sizing with limits */
   text-shadow: 0 0 20px rgba(58,160,255,0.18);
   transition: color 0.25s ease, transform 0.18s ease;
   cursor: pointer;
@@ -104,7 +117,6 @@ header .subtitle:hover::after {
   50% { transform: scale(1.02); text-shadow: 0 0 30px rgba(255,77,79,0.5); }
 }
 
-/* Linear Progress Bar */
 .progress-bar-container {
   width: 100%;
   max-width: 600px;
@@ -116,7 +128,7 @@ header .subtitle:hover::after {
 
 .progress-bar {
   height: 100%;
-  width: 100%; /* Starts at full width */
+  width: 100%;
   background-color: var(--accent);
   transition: width 0.5s linear, background-color 0.25s ease;
 }
@@ -128,26 +140,24 @@ header .subtitle:hover::after {
   max-width: 600px;
   color: var(--muted);
   font-size: clamp(1rem, 2vw, 1.5rem);
-  /* reduce horizontal padding so the block fits tighter vertically as well */
   padding: 0 0.6rem;
 }
 
 .elapsed-time {
   color: var(--muted);
-  /* slightly reduce size to help layout when space is tight */
   font-size: clamp(1rem, 2.2vw, 1.5rem);
   font-variant-numeric: tabular-nums;
 }
 
-/* Controls */
 .controls-row {
   display: flex;
-  /* reduce gap between buttons so controls take less vertical space */
   gap: 0.35rem;
   flex-wrap: wrap;
   justify-content: center;
 }
 
+/* Button styles - Frosted glass effect with hover states
+   Consistent styling for interactive elements */
 .btn {
   border: 1px solid rgba(255,255,255,0.18);
   background: rgba(255,255,255,0.06);
@@ -157,7 +167,7 @@ header .subtitle:hover::after {
   font-weight: 700;
   font-size: clamp(1rem, 1.4vw + 0.5rem, 1.2rem);
   cursor: pointer;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px); /* Frosted glass effect */
 }
 
 .btn:hover { background: rgba(255,255,255,0.1); }
@@ -168,7 +178,8 @@ header .subtitle:hover::after {
 }
 .btn.primary:hover { filter: brightness(1.05); }
 
-/* Notes Section */
+/* Notes section - Scrollable container with frosted glass effect
+   Allows internal content to scroll while maintaining viewport-locked layout */
 .notes {
   max-width: 1100px;
   margin: 0 auto;
@@ -178,8 +189,8 @@ header .subtitle:hover::after {
   padding: clamp(1rem, 2.2vw, 1.5rem);
   backdrop-filter: blur(4px);
   position: relative;
-  overflow-y: auto; /* Allow notes to scroll if content is too long */
-  min-height: 0; /* Important for flex/grid children to allow shrinking */
+  overflow-y: auto; /* Enable internal scrolling */
+  min-height: 0; /* Allows proper sizing in grid/flex contexts */
 }
 
 .notes h2 {
@@ -223,7 +234,6 @@ header .subtitle:hover::after {
   opacity: 1;
 }
 
-/* Footer */
 footer {
   display: flex;
   gap: 1rem;
@@ -273,7 +283,6 @@ footer a:hover {
   opacity: 0.8;
 }
 
-/* Settings Modal */
 .modal {
   display: none;
   position: fixed;
@@ -335,6 +344,9 @@ footer a:hover {
   margin-top: 1.5rem;
 }
 
+/* Responsive adjustments
+   ========================================================================== */
+/* Tighter spacing for very small screens */
 @media (max-height: 560px) {
   .wrap {
     padding: 2vh 4vw;
